@@ -1,0 +1,2 @@
+Here resides my paper notes when initially researching the components of the algorithm.
+This doc serves as filler for the folder creation on Github
