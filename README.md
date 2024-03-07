@@ -6,7 +6,11 @@ to explain what problem you're solving, how you're doing it, and that you test
 your code.
 
 # Fast Inverse Square Quake 3 Arena
+The concept for this project is both:
 
+a) Exploring the methodology and motivation for the development of an engenious algorithm for a 3D videogame
+
+b) Analyzing the Speed ups gained through this method and the time complexity of it compared to traditional methods. Potentially, to expand on the limited nature of asymptotic analysis for algorithms that differ by constants.
 
 
 # The Code
