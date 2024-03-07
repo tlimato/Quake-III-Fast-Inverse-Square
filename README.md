@@ -10,10 +10,11 @@ your code.
 
 
 # The Code as Directly published in the source code of quake 3 Arena
-'''
-{
+
+
 The following code is the fast inverse square root implementation from Quake III Arena, stripped of C preprocessor directives, but including the exact original comment text:[15]
 
+```C
 float q_rsqrt(float number)
 {
   long i;
@@ -31,8 +32,7 @@ float q_rsqrt(float number)
   return y;
 }
 
-}
-'''
+```
 
 
 ## References
