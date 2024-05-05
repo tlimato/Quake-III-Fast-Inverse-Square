@@ -36,6 +36,22 @@ float q_rsqrt(float number)
 }
 
 ```
+## Modern Case:
+```
+float y = 1/sqrt(x) // given an include <math.h>
+```
+The motivation for the development of something faster than this operation was founded in the development of the Video Game Quake 3 Arena, a 1999 multiplayer-focused first-person shooter developed by id Software.
+This game utilized an in-house 3D game engine to run the game and they needed an efficient means to handle Physics, lighting, and reflections, in 1999 before it was commonplace for PC gamer consumers to have GPUs in their machines as a given (nowadays it's expected for you to have a GPU for gaming). However, Physics, lighting, and reflections all require normalized vectors which need to be calculated in real time (or close to it) for the game to both look good and run well.
+
+### Normalization
+1) a given length vector is equal to $\sqrt(x^2 + y^2 + z^2)$
+2) scale down the length of the vector to normalize said vector
+  $$
+  x/(\sqrt(x^2 + y^2 + z^2) , y/(\sqrt(x^2 + y^2 + z^2), z/(\sqrt(x^2 + y^2 + z^2)
+  $$
+  or in other words, the respective dimension multiplied by $1/length$
+
+This gives an accurate although slow way to normalize vectors using inverse square. Conversely, the fast inverse square root algorithm serves as a fast "Good Enough" approximation of the result for usage in a video game where exact results aren't as important compared to scientific applications. Specifically, this algorithm boasts an error of at most 1% with a 3 times execution speedup.
 
 
 ## References
