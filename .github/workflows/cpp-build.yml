@@ -1,0 +1,21 @@
+name: C++ Build with openMP and Run
+
+on: [push, pull_request]
+
+jobs:
+  build_and_run:
+    name: Compile and Execute main.cpp
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install Dependencies
+      run: sudo apt-get install -y g++ libomp-dev
+
+    - name: Build main.cpp
+      run: g++ -fopenmp main.cpp -o main
+
+    - name: Run the executable
+      run: ./main
