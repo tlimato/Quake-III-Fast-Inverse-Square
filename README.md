@@ -8,14 +8,12 @@ your code.
 # Fast Inverse Square Quake 3 Arena
 The concept for this project is both:
 
-a) Exploring the methodology and motivation for the development of an engenious algorithm for a 3D videogame
+a) Exploring the methodology and motivation for the development of an engenious algorithm from Quake 3 (1999) a 3D Shooter Video Game that came out before I was born that I think was really cool and have a nostalgic connection to as a I played it on my parents old computer as a kid.
 
 b) Analyzing the Speed ups gained through this method and the time complexity of it compared to traditional methods. Potentially, to expand on the limited nature of asymptotic analysis for algorithms that differ by constants.
 
-
-# The Code
-
 The following code is the fast inverse square root implementation from Quake III Arena including the exact original comments text taken from the original source code.
+# The Code
 
 ```C
 float q_rsqrt(float number)
@@ -197,10 +195,160 @@ This converts the long back to a float and assigns it to y.
 From right to left, we take the address of a long and cast it to a pointer of a float adresss. we then dereference the pointer to the float, which reads the value as if it were a float and assigns it to $y$. This gives us a good approximation which we can refine in the next step.
 
 ### Step 3: Newton Iteration
+
 After step 2, we have a decent approximation, but are left with some error terms. Newton's method is a way to refine the approximation by taking the derivative of the function and solving for the root $(f(x) = 0)$. This is done by taking an approximation and then returning a better approximation. The Quake 3 Developers chose to use Newton's method to refine the approximation as only a single iteration gives an error within 1%. I have drawn what this process looks like visually and will go into more detail for it's implications in code after.
+
+**Visual Representation of Newton Approximation**
 
 ![alt text](<Newton Approx.jpg>)
 
+With respect to the actual code, the Newton Iteration is done as follows:
+
+```c
+y = y * ( threehalfs - ( x2 * y * y ) );   // 1st iteration
+```
+
+This line of code represents a single iteration of Newton's method for refining the approximation of the inverse square root. The mathematical basis of which is follows:
+
+Given the function:
+$$
+f(y) = \frac{1}{y^2} - x
+$$
+where $x$ is the number we want to find the inverse square root, and $y$ is our current approximation. The goal is to find $y$ such that $f(y) = 0$, which implies:
+$$
+y = \frac{1}{\sqrt{x}}
+$$
+
+Newton's method updates the approximation $y$ using the formula:
+$$
+y_{\text{new}} = y - \frac{f(y)}{f'(y)}
+$$
+where $f'(y)$ is the derivative of $f(y)$. For the function $f(y)$, the derivative $f'(y)$ is:
+$$
+f'(y) = -\frac{2}{y^3}
+$$
+
+Substituting $f(y)$ and $f'(y)$ into the Newton's update formula gives:
+
+$$
+y_{\text{new}} = y - \frac{\frac{1}{y^2} - x}{-\frac{2}{y^3}} = y + \frac{y^3 (\frac{1}{y^2} - x)}{2} = y + \frac{y - xy^3}{2}
+$$
+
+Simplifying further, we get:
+$$
+y_{\text{new}} = y \left(\frac{3}{2} - \frac{x y^2}{2}\right)
+$$
+This is exactly what the code does, connecting back we can see:
+
+```c
+y = y (threehalfs - (x2 y y));
+```
+where $x2$ is $\frac{x}{2}$, making the expression equivalent to the mathematical derivation.
+
+This step significantly improves the accuracy of the approximation by using the derivative to adjust the estimate based on how far off the current approximation is from the actual inverse square root.
+
+### Breakdown Conclusions
+
+It's incredible how a relatively inoccuos piece of code can be so detailed an complex. Given the limited performance of computers and the design contraint of rendering on CPU in 1999, this code is a great example of how small changes can have a big impact on the performance of a program. In this class we have focused on runtime complexity using aystompotic analysis, and have hinted at the importance of memory management and reducing unceessary operation even if they are constant but haven't really delved into an algorithm that concerns itself with this too much. 
+
+If we look at the **asymptotic complexity** of the Quake 3's  Fast Inverse Square Root implementation, it has a complexity of $O(1)$. There is no iterating over a loop nor any factors impacted by a given number of elements.
+Which this means that in theory their algorithm would impact nothing given just the basic Inverse square root:
+$i = \frac{1}{\sqrt{x}}$
+
+is also a constant time operation: $O(1)$ yet Quakes is much Faster. As outlined in the code review portion of this assignment, Quake 3's Programmers used efficiencies in their code to make the program run faster. This includes using bitwise operations to manipulate the bits of a float, and using Newton's method to refine the approximation of the inverse square root all while abusing the IEEE 754 standard to manipulate floating point numbers. Given traditionally on older machines, operations like division and squareroots are much slower than bitwise operations and addition and subtraction, these optimizations influence a lot of the overhead for calculating the inverse square root.
+
+In games where the Frames per Second is a major concern, this can add up to a significant amount of time saved in the program when a large amount of vectors need to be normalized for lighting, physics, and rendering in the actual deployment of the game. From a personal perspective, I love Quake 3 as a game, growing up with very slow computers from the early 2000s that could only run games like Quake 3 and Half life I wanted to explore an algorithm that was relavant to it.
+
+## Next Steps
+As a means to impliment this myself using techniques that were covered in class i thought it would be appropriate to create a parallelized version of this function and compare it to the original as well as the traditional $\frac{1}{\sqrt{x}}$ and measure timings.While not a perfectly scientific method, it would be interesting to see how the speedup from using Quake 3's method and my parallelization compares to the traditional method given a large amount of data to iterate over.
+
+Given this code is in c++, the only framework I'm even moderately familiar with for parallelization is OpenMP. I used to work at the University of Wyoming Advanced Research Computing Center and got some exposure to this topic prior to the class. 
+
+I was able to implement a parallelized version of this function in 'main.cpp' and compare it to the original as well as the traditional $\frac{1}{\sqrt{x}}$ and measure timings. See Main.cpp for the code.
+
+### Results
+a data set of 10 million numbers was used to test the speed of the different implementations given this was required to register a meaningful difference between all the algorithms
+The raw results as output by the program in terminal are as follows:
+
+```bash
+Run number 1
+Parallel Quake 3, Execution time: 51 milliseconds
+Sequential Quake 3, Execution time: 136 milliseconds
+Manual Sqrt, Execution time: 93 milliseconds
+Modern math.h library sqrt, Execution time: 50 milliseconds
+Run number 2
+Parallel Quake 3, Execution time: 42 milliseconds
+Sequential Quake 3, Execution time: 138 milliseconds
+Manual Sqrt, Execution time: 92 milliseconds
+Modern math.h library sqrt, Execution time: 49 milliseconds
+Run number 3
+Parallel Quake 3, Execution time: 37 milliseconds
+Sequential Quake 3, Execution time: 144 milliseconds
+Manual Sqrt, Execution time: 96 milliseconds
+Modern math.h library sqrt, Execution time: 50 milliseconds
+Run number 4
+Parallel Quake 3, Execution time: 37 milliseconds
+Sequential Quake 3, Execution time: 140 milliseconds
+Manual Sqrt, Execution time: 95 milliseconds
+Modern math.h library sqrt, Execution time: 50 milliseconds
+Run number 5
+Parallel Quake 3, Execution time: 38 milliseconds
+Sequential Quake 3, Execution time: 146 milliseconds
+Manual Sqrt, Execution time: 95 milliseconds
+Modern math.h library sqrt, Execution time: 53 milliseconds
+Run number 6
+Parallel Quake 3, Execution time: 39 milliseconds
+Sequential Quake 3, Execution time: 141 milliseconds
+Manual Sqrt, Execution time: 92 milliseconds
+Modern math.h library sqrt, Execution time: 50 milliseconds
+Run number 7
+Parallel Quake 3, Execution time: 38 milliseconds
+Sequential Quake 3, Execution time: 138 milliseconds
+Manual Sqrt, Execution time: 92 milliseconds
+Modern math.h library sqrt, Execution time: 50 milliseconds
+Run number 8
+Parallel Quake 3, Execution time: 38 milliseconds
+Sequential Quake 3, Execution time: 141 milliseconds
+Manual Sqrt, Execution time: 94 milliseconds
+Modern math.h library sqrt, Execution time: 51 milliseconds
+Run number 9
+Parallel Quake 3, Execution time: 44 milliseconds
+Sequential Quake 3, Execution time: 141 milliseconds
+Manual Sqrt, Execution time: 93 milliseconds
+Modern math.h library sqrt, Execution time: 49 milliseconds
+Run number 10
+Parallel Quake 3, Execution time: 38 milliseconds
+Sequential Quake 3, Execution time: 138 milliseconds
+Manual Sqrt, Execution time: 92 milliseconds
+Modern math.h library sqrt, Execution time: 49 milliseconds
+```
+
+This gives the following table:
+| Run Number | Parallel Quake 3 (ms) | Sequential Quake 3 (ms) | Manual Sqrt (ms) | Modern math.h library sqrt (ms) |
+|------------|-----------------------|-------------------------|------------------|---------------------------------|
+| 1 | 51 | 136 | 93 | 50 |
+| 2 | 42 | 138 | 92 | 49 |
+| 3 | 37 | 144 | 96 | 50 |
+| 4 | 37 | 140 | 95 | 50 |
+| 5 | 38 | 146 | 95 | 53 |
+| 6 | 39 | 141 | 92 | 50 |
+| 7 | 38 | 138 | 92 | 50 |
+| 8 | 38 | 141 | 94 | 51 |
+| 9 | 44 | 141 | 93 | 49 |
+| 10 | 38 | 138 | 92 | 49 |
+
+Of course, the modern math.h library sqrt is still faster than the traditional sqrt and even the traditional Quake 3's method. This is because the modern math.h library sqrt is implemented in hardware and optimized for the specific architecture it is running on, while the traditional sqrt and Quake 3's method are implemented in software and require the software emulation of the hardware instructions. Furthermore Quake 3's method was designed with the popular Pentium III in mind, which was only a single core and no multithreading meaning, their fast inverse square root algorthim won't leverage the multiple cores and threads available on modern computers like math.h.
+
+Interestingly, by using OpenMP, we can see that the parallelized version of the Quake 3's method is faster in some cases than the modern math.h sqrt method, which is unexpected and quite a bit faster than the sequential Quake 3 method. This is because the parallelized version of the Quake 3's method uses multiple threads to compute the inverse square root in parallel, which can be beneficial on multi-core processors. However, the parallelized version of the Quake 3's method is still slower than the traditional sqrt and the modern math.h library sqrt. This is because the parallelized version of the Quake 3's method uses shared memory to pass data between threads, which can be slower than a method that is more meticulous and complex like the sqrt in the math.h library.
+
+### Analysis
+parallel_q_rsqrt computes the inverse square root of each element in an array using a parallelized loop. The loop iterates over each element of the input array numbers and performs a constant amount of work for each element, regardless of the size of the array. The key operations inside the loop (bit manipulation and arithmetic operations) do not depend on the size of the array and are executed a fixed number of times for each element.
+Despite the function being parallelized accross multiple threads, the time complexity is still $O(n)$. The speed up comes from the fact that the parallelized version of the Quake 3's method is able to leverage the multiple cores and threads available on modern computers to compute the inverse square root of each element in the array in parrallel, which was observed to cause a significant speed up in execution time across a large set of data.
 
 ## References
-(1) https://en.wikipedia.org/wiki/Fast_inverse_square_root
+
+1. Wikipedia contributors. (n.d.). Fast inverse square root. Wikipedia, The Free Encyclopedia. Retrieved from https://en.wikipedia.org/wiki/Fast_inverse_square_root
+2. id Software. (n.d.). Quake III Arena. GitHub repository. Retrieved from https://github.com/id-Software/Quake-III-Arena
+3. Azad, K. (n.d.). Understanding Quake's Fast Inverse Square Root. BetterExplained. Retrieved from https://betterexplained.com/articles/understanding-quakes-fast-inverse-square-root/
+4. ThatOneGameDev. (n.d.). Fast Square Root in Quake III. ThatOneGameDev. Retrieved from https://thatonegamedev.com/math/fast-square-root-quake-iii/
+5. 0xcode. (n.d.). The Brilliance of Quake's Fast Inverse Square Root Algorithm. Medium. Retrieved from https://medium.com/0xcode/the-brilliance-of-quakes-fast-inverse-square-root-algorithm-d18365f8bba2
