@@ -8,11 +8,11 @@ your code.
 # Fast Inverse Square Quake 3 Arena
 The concept for this project is both:
 
-a) Exploring the methodology and motivation for the development of an engenious algorithm from Quake 3 (1999) a 3D Shooter Video Game that came out before I was born that I think was really cool and have a nostalgic connection to as a I played it on my parents old computer as a kid.
+a) Exploring the methodology and motivation for the development of an ingenious algorithm from Quake 3 (1999) a 3D Shooter Video Game that came out before I was born that I think was really cool and have a nostalgic connection to as I played it on my parent's old computer as a kid.
 
-b) Analyzing the Speed ups gained through this method and the time complexity of it compared to traditional methods. Potentially, to expand on the limited nature of asymptotic analysis for algorithms that differ by constants.
+b) Analyzing the Speed-ups gained through this method and the time complexity of it compared to traditional methods. Potentially, to expand on the limited nature of asymptotic analysis for algorithms that differ by constants.
 
-The following code is the fast inverse square root implementation from Quake III Arena including the exact original comments text taken from the original source code.
+The following code is the fast inverse square root implementation from Quake III Arena including the exact original comments text taken from the source code.
 # The Code
 
 ```C
@@ -53,6 +53,7 @@ This game utilized an in-house 3D game engine to run the game and they needed an
   $$
      \left(\frac{x}{\sqrt{x^2 + y^2 + z^2}}, \frac{y}{\sqrt{x^2 + y^2 + z^2}}, \frac{z}{\sqrt{x^2 + y^2 + z^2}}\right)
   $$
+  
   This represents each dimension multiplied by the reciprocal of the vector's length.
 
 While this method provides accurate results, it is computationally slow. In contrast, the fast inverse square root algorithm offers a "good enough" approximation for video game applications, where exact precision is less critical than in scientific computations. This algorithm achieves an error margin of at most 1% while providing a speedup of approximately three times compared to the traditional method.
@@ -86,7 +87,7 @@ Here is the section in question.
   i  = * ( long * ) &y;                       // evil floating point bit level hacking
 ```
 The first thing we need to understand is the bit representation of a floating point number. {Computer Organization, Digital System Design, C}
-In C, the long data type is 32 bits structured into the following style of four 8 bit sections.
+In C, the long data type is 32 bits structured into the following style of four 8-bit sections.
 '''
 00000000 00000000 00000000 00000000
 '''
@@ -109,6 +110,7 @@ if we take the log_2 of the equation we get:
 $$
 \log_2(V) = \log_2(1 + \frac{M}{2^{23}}) + (E-127) 
 $$
+
 This simplifies approximately to $log_2(1+x) \approx x + \mu$ for small values of x, where $\mu$ is the conversion coefficient. The conversion coefficient chosen by the Quake 3 programmers is $\mu$ = 0.0430 which gives the smallest error possible. (we will revisit why this is later)
 
 Using this relationship, we can derive the following forms:
@@ -150,43 +152,59 @@ Here is where our knowledge of the bit representation of a floating point number
 First let's talk about what on earth we are doing to $i$.
 well we know that $log_2(y) = it's own bitwise representation$.
 Therefore, we can use the bitwise representation to do the following
+
 $$
 log_2(y) \approx IEEE 754 Representation of float y
 $$
+
 Therefore, we can reasonably conclude that:
+
 $$
 log_2(\frac{1}{\sqrt{y}}) = log_2(y^(-1/2)) = -1/2 * log_2(y)
 $$
+
 in bitwise operations, this result is expressed as $\approx -(i >> 1)$
 The $i >> 1$ operation performs a bitwise right shift by one on $i$. In terms of logarithms, shifting right by one bit is equivalent to dividing the number by 2, or mathematically, subtracting 1 from the exponent in the binary representation of a floating-point number. This operation approximates multiplying the logarithm of the number by -1/2.
 
 Now what about the actual $log_2$ operation on y? What is the weird 0x5f3759df value and why are we subtracting our bit shift from it?
 
 To find out let's take a more rigourous look at our relationship:
+
 $$
 log_2(y) \approx IEEE-754-Representation-of-float-y
 $$
+
 let $\sigma = \frac{1}{\sqrt{y}}$ and substitute it into our bit representation.
+
 $$
 \frac{1}{2^(23)}(M_\sigma + E_\sigma * 2^{23}) + \mu - 127
 = \frac{-1}{2}(\frac{1}{2^{23}} * (M_y + 2^{23} * E_y) + \mu - 127)
 $$
+
 we can then solve for $M_\sigma$ and $E_\sigma$ gives:
+
 $$
 (M_\sigma +  2^{23} * E_\sigma) = \frac{3}{2} * 2^{23} * (127 - \mu)- \frac{1}{2}(M_y + 2^{23} *E_y)
 $$
+
 where we can then derive 0x5f3759df from the following:
+
 $$
 0x5f3759df = \frac{3}{2} * 2^{23} * (127 - \mu) , \mu = 0.0430
 $$
+
 more explicitly 0x5f3759df is the hexidicmal result of the following:
+
 $$
 \frac{3}{2} * 2^{23} * (127 - 0.0430)
 $$
+
 This results in the complete long estimate: 
+
 $$
 i = 0x5f3759df - ( i >> 1 )
 $$
+
 then the next step:
 ```c
 y  = * ( float * ) &i;
@@ -211,19 +229,25 @@ y = y * ( threehalfs - ( x2 * y * y ) );   // 1st iteration
 This line of code represents a single iteration of Newton's method for refining the approximation of the inverse square root. The mathematical basis of which is follows:
 
 Given the function:
+
 $$
 f(y) = \frac{1}{y^2} - x
 $$
+
 where $x$ is the number we want to find the inverse square root, and $y$ is our current approximation. The goal is to find $y$ such that $f(y) = 0$, which implies:
+
 $$
 y = \frac{1}{\sqrt{x}}
 $$
 
 Newton's method updates the approximation $y$ using the formula:
+
 $$
 y_{\text{new}} = y - \frac{f(y)}{f'(y)}
 $$
+
 where $f'(y)$ is the derivative of $f(y)$. For the function $f(y)$, the derivative $f'(y)$ is:
+
 $$
 f'(y) = -\frac{2}{y^3}
 $$
@@ -235,9 +259,11 @@ y_{\text{new}} = y - \frac{\frac{1}{y^2} - x}{-\frac{2}{y^3}} = y + \frac{y^3 (\
 $$
 
 Simplifying further, we get:
+
 $$
 y_{\text{new}} = y \left(\frac{3}{2} - \frac{x y^2}{2}\right)
 $$
+
 This is exactly what the code does, connecting back we can see:
 
 ```c
@@ -249,26 +275,26 @@ This step significantly improves the accuracy of the approximation by using the 
 
 ### Breakdown Conclusions
 
-It's incredible how a relatively inoccuos piece of code can be so detailed an complex. Given the limited performance of computers and the design contraint of rendering on CPU in 1999, this code is a great example of how small changes can have a big impact on the performance of a program. In this class we have focused on runtime complexity using aystompotic analysis, and have hinted at the importance of memory management and reducing unceessary operation even if they are constant but haven't really delved into an algorithm that concerns itself with this too much. 
+It's incredible how a relatively innocuous piece of code can be so detailed an complex. Given the limited performance of computers and the design constraint of rendering on CPU in 1999, this code is a great example of how small changes can have a big impact on the performance of a program. In this class we have focused on runtime complexity using aystompotic analysis, and have hinted at the importance of memory management and reducing unnecessary operations even if they are constant but haven't really delved into an algorithm that concerns itself with this too much. 
 
-If we look at the **asymptotic complexity** of the Quake 3's  Fast Inverse Square Root implementation, it has a complexity of $O(1)$. There is no iterating over a loop nor any factors impacted by a given number of elements.
-Which this means that in theory their algorithm would impact nothing given just the basic Inverse square root:
+If we look at the **asymptotic complexity** of Quake 3's  Fast Inverse Square Root implementation, it has a complexity of $O(1)$. There is no iterating over a loop nor any factors impacted by a given number of elements.
+This means that in theory their algorithm would impact nothing given just the basic Inverse square root:
 $i = \frac{1}{\sqrt{x}}$
 
-is also a constant time operation: $O(1)$ yet Quakes is much Faster. As outlined in the code review portion of this assignment, Quake 3's Programmers used efficiencies in their code to make the program run faster. This includes using bitwise operations to manipulate the bits of a float, and using Newton's method to refine the approximation of the inverse square root all while abusing the IEEE 754 standard to manipulate floating point numbers. Given traditionally on older machines, operations like division and squareroots are much slower than bitwise operations and addition and subtraction, these optimizations influence a lot of the overhead for calculating the inverse square root.
+is also a constant time operation: $O(1)$ yet Quakes is much Faster. As outlined in the code review portion of this assignment, Quake 3's Programmers used efficiencies in their code to make the program run faster. This includes using bitwise operations to manipulate the bits of a float and using Newton's method to refine the approximation of the inverse square root all while abusing the IEEE 754 standard to manipulate floating point numbers. Given traditionally on older machines, operations like division and square roots are much slower than bitwise operations and addition and subtraction, these optimizations influence a lot of the overhead for calculating the inverse square root.
 
-In games where the Frames per Second is a major concern, this can add up to a significant amount of time saved in the program when a large amount of vectors need to be normalized for lighting, physics, and rendering in the actual deployment of the game. From a personal perspective, I love Quake 3 as a game, growing up with very slow computers from the early 2000s that could only run games like Quake 3 and Half life I wanted to explore an algorithm that was relavant to it.
+In games where the Frames per Second is a major concern, this can add up to a significant amount of time saved in the program when a large number of vectors need to be normalized for lighting, physics, and rendering in the actual deployment of the game. From a personal perspective, I love Quake 3 as a game, growing up with very slow computers from the early 2000s that could only run games like Quake 3 and Half Life I wanted to explore an algorithm that was relevant to it.
 
 ## Next Steps
-As a means to impliment this myself using techniques that were covered in class i thought it would be appropriate to create a parallelized version of this function and compare it to the original as well as the traditional $\frac{1}{\sqrt{x}}$ and measure timings.While not a perfectly scientific method, it would be interesting to see how the speedup from using Quake 3's method and my parallelization compares to the traditional method given a large amount of data to iterate over.
+As a means to implement this myself using techniques that were covered in class, i thought it would be appropriate to create a parallelized version of this function and compare it to the original as well as the traditional $\frac{1}{\sqrt{x}}$ and measure timings. While not a perfectly scientific method, it would be interesting to see how the speedup from using Quake 3's method and my parallelization compares to the traditional method given a large amount of data to iterate over.
 
-Given this code is in c++, the only framework I'm even moderately familiar with for parallelization is OpenMP. I used to work at the University of Wyoming Advanced Research Computing Center and got some exposure to this topic prior to the class. 
+Given this code is in C++, the only framework I'm even moderately familiar with for parallelization is OpenMP. I used to work at the University of Wyoming Advanced Research Computing Center and got some exposure to this topic prior to the class. 
 
 I was able to implement a parallelized version of this function in 'main.cpp' and compare it to the original as well as the traditional $\frac{1}{\sqrt{x}}$ and measure timings. See Main.cpp for the code.
 
 ### Results
 a data set of 10 million numbers was used to test the speed of the different implementations given this was required to register a meaningful difference between all the algorithms
-The raw results as output by the program in terminal are as follows:
+The raw results as output by the program in the terminal are as follows:
 
 ```bash
 Run number 1
@@ -337,9 +363,9 @@ This gives the following table:
 | 9 | 44 | 141 | 93 | 49 |
 | 10 | 38 | 138 | 92 | 49 |
 
-Of course, the modern math.h library sqrt is still faster than the traditional sqrt and even the traditional Quake 3's method. This is because the modern math.h library sqrt is implemented in hardware and optimized for the specific architecture it is running on, while the traditional sqrt and Quake 3's method are implemented in software and require the software emulation of the hardware instructions. Furthermore Quake 3's method was designed with the popular Pentium III in mind, which was only a single core and no multithreading meaning, their fast inverse square root algorthim won't leverage the multiple cores and threads available on modern computers like math.h.
+Of course, the modern math.h library sqrt is still faster than the traditional sqrt and even the traditional Quake 3's method. This is because of modern math.h library sqrt is implemented in hardware and optimized for the specific architecture it is running on, while the traditional sqrt and Quake 3's method are implemented in software and require the software emulation of the hardware instructions. Furthermore, Quake 3's method was designed with the popular Pentium III in mind, which was only a single core and no multithreading meaning, their fast inverse square root algorithm won't leverage the multiple cores and threads available on modern computers like math.h.
 
-Interestingly, by using OpenMP, we can see that the parallelized version of the Quake 3's method is faster in some cases than the modern math.h sqrt method, which is unexpected and quite a bit faster than the sequential Quake 3 method. This is because the parallelized version of the Quake 3's method uses multiple threads to compute the inverse square root in parallel, which can be beneficial on multi-core processors. However, the parallelized version of the Quake 3's method is still slower than the traditional sqrt and the modern math.h library sqrt. This is because the parallelized version of the Quake 3's method uses shared memory to pass data between threads, which can be slower than a method that is more meticulous and complex like the sqrt in the math.h library.
+Interestingly, by using OpenMP, we can see that the parallelized version of Quake 3's method is faster in some cases than modern math.h sqrt method, which is unexpected and quite a bit faster than the sequential Quake 3 method. This is because the parallelized version of Quake 3's method uses multiple threads to compute the inverse square root in parallel, which can benefit multi-core processors. However, the parallelized version of Quake 3's method is still slower than the traditional sqrt and modern math.h library sqrt. This is because the parallelized version of Quake 3's method uses shared memory to pass data between threads, which can be slower than a method that is more meticulous and complex like the sqrt in the math.h library.
 
 ### Analysis
 parallel_q_rsqrt computes the inverse square root of each element in an array using a parallelized loop. The loop iterates over each element of the input array numbers and performs a constant amount of work for each element, regardless of the size of the array. The key operations inside the loop (bit manipulation and arithmetic operations) do not depend on the size of the array and are executed a fixed number of times for each element.
