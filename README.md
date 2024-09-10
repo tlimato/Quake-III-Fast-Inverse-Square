@@ -39,7 +39,7 @@ This game utilized an in-house 3D game engine to run the game and they needed an
 
 ### Normalization
 
-1) The length of a vector $(x, y, z)$ is given by:
+1) The length of a vector $(x, y, z)$ is given by
   $$
   Length = \sqrt{x^2 + y^2 + z^2}
   $$
