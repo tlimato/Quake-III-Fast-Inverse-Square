@@ -27,10 +27,13 @@ float q_rsqrt(float number)
 }
 
 ```
+
 ## Modern Case:
+
 ```
 float y = 1/sqrt(x) // given an include <math.h>
 ```
+
 The motivation for the development of something faster than this operation was founded in the development of the Video Game Quake 3 Arena, a 1999 multiplayer-focused first-person shooter developed by id Software.
 This game utilized an in-house 3D game engine to run the game and they needed an efficient means to handle Physics, lighting, and reflections, in 1999 before it was commonplace for PC gamer consumers to have GPUs in their machines as a given (nowadays it's expected for you to have a GPU for gaming). However, Physics, lighting, and reflections all require normalized vectors which need to be calculated in real time (or close to it) for the game to both look good and run well.
 
@@ -41,10 +44,10 @@ This game utilized an in-house 3D game engine to run the game and they needed an
    \text{Length} = \sqrt{x^2 + y^2 + z^2}
    $$
 
-2) scale down the length of the vector to normalize said vector
+2) scale down the length of the vector to normalize the said vector
 
   $$
-     \left(\frac{x}{\sqrt{x^2 + y^2 + z^2}}, \frac{y}{\sqrt{x^2 + y^2 + z^2}}, \frac{z}{\sqrt{x^2 + y^2 + z^2}}\right)
+  \left(\frac{x}{\sqrt{x^2 + y^2 + z^2}}, \frac{y}{\sqrt{x^2 + y^2 + z^2}}, \frac{z}{\sqrt{x^2 + y^2 + z^2}}\right)
   $$
   
   This represents each dimension multiplied by the reciprocal of the vector's length.
@@ -70,6 +73,7 @@ While this method provides accurate results, it is computationally slow. In cont
 
 ### Step 1: Evil Bit Hack
 Here is the section in question.
+
 ```c
  long i;
   float x2, y;
@@ -79,6 +83,7 @@ Here is the section in question.
   y  = number;
   i  = * ( long * ) &y;                       // evil floating point bit level hacking
 ```
+
 The first thing we need to understand is the bit representation of a floating point number. {Computer Organization, Digital System Design, C}
 In C, the long data type is 32 bits structured into the following style of four 8-bit sections.
 '''
@@ -91,15 +96,19 @@ Conversely, floats in C utilize the IEEE 754 standard where they are structured 
 #### Example:
 
 Given a 23 bit mantissa $M$ and an 8 bit exponent $E$, the value $V$ of the floating-point number is given by:
+
 $$
 V = (1 + \frac{M}{2^{23}}) \times 2^{(E-127)}
 $$
+
 derives to:
+
 $$
 (1+ \frac{M}{2^{23}}) \times 2^{(E-127)}
 $$
 
 if we take the log_2 of the equation we get:
+
 $$
 \log_2(V) = \log_2(1 + \frac{M}{2^{23}}) + (E-127) 
 $$
