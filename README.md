@@ -40,9 +40,10 @@ This game utilized an in-house 3D game engine to run the game and they needed an
 ### Normalization
 
 1) The length of a vector $(x, y, z)$ is given by:
-   $$
-  \text{Length} = \sqrt{x^2 + y^2 + z^2}
   $$
+  Length = \sqrt{x^2 + y^2 + z^2}
+  $$
+
 
 
 2) scale down the length of the vector to normalize the said vector
