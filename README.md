@@ -35,7 +35,7 @@ float y = 1/sqrt(x) // given an include <math.h>
 ```
 
 The motivation for the development of something faster than this operation was founded in the development of the Video Game Quake 3 Arena, a 1999 multiplayer-focused first-person shooter developed by id Software.
-This game utilized an in-house 3D game engine to run the game and they needed an efficient means to handle Physics, lighting, and reflections, in 1999 before it was commonplace for PC gamer consumers to have GPUs in their machines as a given (nowadays it's expected for you to have a GPU for gaming). However, Physics, lighting, and reflections all require normalized vectors which need to be calculated in real time (or close to it) for the game to both look good and run well.
+This game utilized an in-house 3D game engine to run the game and they needed an efficient means to handle Physics, lighting, and reflections, in 1999 before it was commonplace for PC gamer consumers to have GPUs in their machines as a given (nowadays it's expected for you to have a GPU for gaming). However, Physics, lighting, and reflections all require normalized vectors which need to be calculated in real-time (or close to it) for the game to both look good and run well.
 
 ### Normalization
 
@@ -92,7 +92,7 @@ In C, the long data type is 32 bits structured into the following style of four 
 '''
 00000000 00000000 00000000 00000000
 '''
-Conversely, floats in C utilize the IEEE 754 standard where they are structured into the following style of three sections, 1 sign bit, an 8 bit exponent (think scientific notation), and 23 bit mantissa.
+Conversely, floats in C utilize the IEEE 754 standard where they are structured into the following style of three sections, 1 sign bit, an 8-bit exponent (think scientific notation), and 23-bit mantissa.
 '''
 0 00000000 00000000000000000000000
 '''
@@ -138,23 +138,23 @@ $$
 \log_2(V) = \frac{1}{2^{23}} * (M + E * 2^{23}) + \mu - 127
 $$
 
-THIS MEANS THAT the Bit Representation of a floating point number V is it's own log_2 value. This brings us to how the "Evil Bit Hack" Works.
+THIS MEANS THAT the Bit Representation of a floating point number V is its own log_2 value. This brings us to how the "Evil Bit Hack" Works.
 The input is stored in float $y$. Floats, by default in C, do not enable us to use Bitwise Operations. Therefore, we must use the "Evil bit hack" to get the bitwise representation of the float.
-We want to keep the decimal number and the bits that make it up, but in a long datatype without the conversion messing with our bits. (i.e just copy the bits 1-1 from a float y to a long). To do this we can convert the **memory address** NOT the number in it.
+We want to keep the decimal number and the bits that make it up but in a long datatype without the conversion messing with our bits. (i.e. just copy the bits 1-1 from a float y to a long). To do this we can convert the **memory address** NOT the number in it.
 
 ```c
 i = * (long *) &y;
 ```
-From right to left, we take the adress of a float and cast it to a pointer of a long adresss. we then dereference the pointer to the long , which reads the value as if it were a long and assigns it to $i$. Now we can manipulate the bits of $i$ to get the value we want.
+From right to left, we take the address of a float and cast it to a pointer of a long address. we then dereference the pointer to the long, which reads the value as if it were a long and assigns it to $i$. Now we can manipulate the bits of $i$ to get the value we want.
 
 ### Step 2: What the f*ck?
 
-Here is where our knowledge of the bit representation of a floating point number comes in to play.
+Here is where our knowledge of the bit representation of a floating point number comes into play.
 ```c
   i  = 0x5f3759df - ( i >> 1 );               // what the fuck?
   y  = * ( float * ) &i;
 ```
-First let's talk about what on earth we are doing to $i$.
+First, let's talk about what on earth we are doing to $i$.
 well we know that $log_2(y) = it's own bitwise representation$.
 Therefore, we can use the bitwise representation to do the following
 
@@ -173,10 +173,10 @@ The $i >> 1$ operation performs a bitwise right shift by one on $i$. In terms of
 
 Now what about the actual $log_2$ operation on y? What is the weird 0x5f3759df value and why are we subtracting our bit shift from it?
 
-To find out let's take a more rigourous look at our relationship:
+To find out let's take a more rigorous look at our relationship:
 
 $$
-log_2(y) \approx IEEE-754-Representation-of-float-y
+log_2(y) \approx IEEE_754_Representation_of_float_y
 $$
 
 let $\sigma = \frac{1}{\sqrt{y}}$ and substitute it into our bit representation.
@@ -198,7 +198,7 @@ $$
 0x5f3759df = \frac{3}{2} * 2^{23} * (127 - \mu) , \mu = 0.0430
 $$
 
-more explicitly 0x5f3759df is the hexidicmal result of the following:
+more explicitly 0x5f3759df is the hexadecimal result of the following:
 
 $$
 \frac{3}{2} * 2^{23} * (127 - 0.0430)
@@ -215,11 +215,11 @@ then the next step:
 y  = * ( float * ) &i;
 ```
 This converts the long back to a float and assigns it to y.
-From right to left, we take the address of a long and cast it to a pointer of a float adresss. we then dereference the pointer to the float, which reads the value as if it were a float and assigns it to $y$. This gives us a good approximation which we can refine in the next step.
+From right to left, we take the address of a long and cast it to a pointer of a Float address. we then dereference the pointer to the float, which reads the value as if it were a float and assigns it to $y$. This gives us a good approximation which we can refine in the next step.
 
 ### Step 3: Newton Iteration
 
-After step 2, we have a decent approximation, but are left with some error terms. Newton's method is a way to refine the approximation by taking the derivative of the function and solving for the root $(f(x) = 0)$. This is done by taking an approximation and then returning a better approximation. The Quake 3 Developers chose to use Newton's method to refine the approximation as only a single iteration gives an error within 1%. I have drawn what this process looks like visually and will go into more detail for it's implications in code after.
+After step 2, we have a decent approximation but are left with some error terms. Newton's method is a way to refine the approximation by taking the derivative of the function and solving for the root $(f(x) = 0)$. This is done by taking an approximation and then returning a better approximation. The Quake 3 Developers chose to use Newton's method to refine the approximation as only a single iteration gives an error within 1%. I have drawn what this process looks like visually and will go into more detail about its implications in code after.
 
 **Visual Representation of Newton Approximation**
 
@@ -231,7 +231,7 @@ With respect to the actual code, the Newton Iteration is done as follows:
 y = y * ( threehalfs - ( x2 * y * y ) );   // 1st iteration
 ```
 
-This line of code represents a single iteration of Newton's method for refining the approximation of the inverse square root. The mathematical basis of which is follows:
+This line of code represents a single iteration of Newton's method for refining the approximation of the inverse square root. The mathematical basis of this is as follows:
 
 Given the function:
 
@@ -280,7 +280,7 @@ This step significantly improves the accuracy of the approximation by using the 
 
 ### Breakdown Conclusions
 
-It's incredible how a relatively innocuous piece of code can be so detailed an complex. Given the limited performance of computers and the design constraint of rendering on CPU in 1999, this code is a great example of how small changes can have a big impact on the performance of a program. In this class we have focused on runtime complexity using aystompotic analysis, and have hinted at the importance of memory management and reducing unnecessary operations even if they are constant but haven't really delved into an algorithm that concerns itself with this too much. 
+It's incredible how a relatively innocuous piece of code can be so detailed and complex. Given the limited performance of computers and the design constraint of rendering on CPU in 1999, this code is a great example of how small changes can have a big impact on the performance of a program. In this class, we have focused on runtime complexity using aystompotic analysis, and have hinted at the importance of memory management and reducing unnecessary operations even if they are constant but haven't really delved into an algorithm that concerns itself with this too much. 
 
 If we look at the **asymptotic complexity** of Quake 3's  Fast Inverse Square Root implementation, it has a complexity of $O(1)$. There is no iterating over a loop nor any factors impacted by a given number of elements.
 This means that in theory their algorithm would impact nothing given just the basic Inverse square root:
@@ -288,10 +288,10 @@ $i = \frac{1}{\sqrt{x}}$
 
 is also a constant time operation: $O(1)$ yet Quakes is much Faster. As outlined in the code review portion of this assignment, Quake 3's Programmers used efficiencies in their code to make the program run faster. This includes using bitwise operations to manipulate the bits of a float and using Newton's method to refine the approximation of the inverse square root all while abusing the IEEE 754 standard to manipulate floating point numbers. Given traditionally on older machines, operations like division and square roots are much slower than bitwise operations and addition and subtraction, these optimizations influence a lot of the overhead for calculating the inverse square root.
 
-In games where the Frames per Second is a major concern, this can add up to a significant amount of time saved in the program when a large number of vectors need to be normalized for lighting, physics, and rendering in the actual deployment of the game. From a personal perspective, I love Quake 3 as a game, growing up with very slow computers from the early 2000s that could only run games like Quake 3 and Half Life I wanted to explore an algorithm that was relevant to it.
+In games where the Frames per Second is a major concern, this can add up to a significant amount of time saved in the program when a large number of vectors need to be normalized for lighting, physics, and rendering in the actual deployment of the game. From a personal perspective, I love Quake 3 as a game, growing up with very slow computers from the early 2000s that could only run games like Quake 3 and Half-Life I wanted to explore an algorithm that was relevant to it.
 
 ## Next Steps
-As a means to implement this myself using techniques that were covered in class, i thought it would be appropriate to create a parallelized version of this function and compare it to the original as well as the traditional $\frac{1}{\sqrt{x}}$ and measure timings. While not a perfectly scientific method, it would be interesting to see how the speedup from using Quake 3's method and my parallelization compares to the traditional method given a large amount of data to iterate over.
+As a means to implement this myself using techniques that were covered in class, I thought it would be appropriate to create a parallelized version of this function and compare it to the original as well as the traditional $\frac{1}{\sqrt{x}}$ and measure timings. While not a perfectly scientific method, it would be interesting to see how the speedup from using Quake 3's method and my parallelization compares to the traditional method given a large amount of data to iterate over.
 
 Given this code is in C++, the only framework I'm even moderately familiar with for parallelization is OpenMP. I used to work at the University of Wyoming Advanced Research Computing Center and got some exposure to this topic prior to the class. 
 
@@ -374,7 +374,7 @@ Interestingly, by using OpenMP, we can see that the parallelized version of Quak
 
 ### Analysis
 parallel_q_rsqrt computes the inverse square root of each element in an array using a parallelized loop. The loop iterates over each element of the input array numbers and performs a constant amount of work for each element, regardless of the size of the array. The key operations inside the loop (bit manipulation and arithmetic operations) do not depend on the size of the array and are executed a fixed number of times for each element.
-Despite the function being parallelized accross multiple threads, the time complexity is still $O(n)$. The speed up comes from the fact that the parallelized version of the Quake 3's method is able to leverage the multiple cores and threads available on modern computers to compute the inverse square root of each element in the array in parrallel, which was observed to cause a significant speed up in execution time across a large set of data.
+Despite the function being parallelized across multiple threads, the time complexity is still $O(n)$. The speed-up comes from the fact that the parallelized version of Quake 3's method is able to leverage the multiple cores and threads available on modern computers to compute the inverse square root of each element in the array in parallel, which was observed to cause a significant speed up in execution time across a large set of data.
 
 ## References
 
